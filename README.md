@@ -1,5 +1,3 @@
-# playground-circuit-breaker
-
 # Ballerina Playground - Circuit Breaker  
  
  
