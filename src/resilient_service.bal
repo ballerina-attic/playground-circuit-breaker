@@ -15,13 +15,13 @@ endpoint http:ClientEndpoint legacyServiceResilientEP {
 
     circuitBreaker: {
 
-                    // failures allowed
+                // failures allowed
                         failureThreshold:0,
 
-                    // reset circuit to CLOSED state after timeout
+                // reset circuit to CLOSED state after timeout
                         resetTimeout:3000,
 
-                    // error codes that open the circuit
+                // error codes that open the circuit
                         statusCodes:[400, 404, 500]
                     },
 
