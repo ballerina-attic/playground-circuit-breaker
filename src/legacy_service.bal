@@ -19,28 +19,26 @@ service<http:Service> legacy_time bind listener {
     }
     getTime (endpoint caller, http:Request request) {
         http:Response response = {};
-        time:Time currentTime = time:currentTime();
-        string customTimeString = currentTime.format("yyyy-MM-dd'T'HH:mm:ss");
 
-        json timeJ = { currentTime : customTimeString };
+        time:Time currentTime = time:currentTime();
+        string customTimeString = currentTime.format("HH:mm:ss");
 
         if (counter % 5 == 0) {
             io:println("Legacy Service : Behavior - Slow");
             runtime:sleepCurrentWorker(1000);
             counter = counter + 1;
-            response.setJsonPayload(timeJ);
+            response.setStringPayload(customTimeString);
             _ = caller -> respond(response);
         } else if (counter % 5 == 3) {
             counter = counter + 1;
             response.statusCode = 500;
             io:println("Legacy Service : Behavior - Faulty");
-            json errorJ = {error: "Internal error occurred while processing the request."};
-            response.setJsonPayload(errorJ);
+            response.setStringPayload("Internal error occurred while processing the request.");
             _ = caller -> respond(response);
         } else {
             io:println("Legacy Service : Behavior - Normal");
             counter = counter + 1;
-            response.setJsonPayload(timeJ);
+            response.setStringPayload(customTimeString);
             _ = caller -> respond(response);
         }
     }
