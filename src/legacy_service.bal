@@ -18,7 +18,7 @@ service<http:Service> legacy_time bind listener {
         path: "/localtime",  methods: ["GET"]
     }
     getTime (endpoint caller, http:Request request) {
-        http:Response response = {};
+        http:Response response = new;
 
         time:Time currentTime = time:currentTime();
         string customTimeString = currentTime.format("HH:mm:ss");
