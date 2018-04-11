@@ -20,7 +20,7 @@ endpoint http:Client legacyServiceResilientEP {
         failureThreshold:0,
 
         // reset circuit to CLOSED state after timeout
-        resetTimeMillies:10000,
+        resetTimeMillies:1000,
 
         // error codes that open the circuit
         statusCodes:[400, 404, 500]
