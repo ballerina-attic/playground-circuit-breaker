@@ -11,12 +11,16 @@ string previousRes;
 
 endpoint http:Client legacyServiceResilientEP {
     circuitBreaker: {
+        // failure calculation window
         rollingWindow: {
+                           // duration of the window
                            timeWindow:10000,
+                           // each time window is divided
+                           // into buckets
                            bucketSize:2000
                        },
 
-        // failures allowed
+        // percentage of failures allowed
         failureThreshold:0,
 
         // reset circuit to CLOSED state after timeout
