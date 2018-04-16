@@ -3,12 +3,10 @@ import ballerina/io;
 
 string previousRes;
 
-
 // Endpoint with circuit breaker can short circuit responses
 // under some conditions. Circuit flips to OPEN state when
 // errors or responses take longer than timeout.
 // OPEN circuits bypass endpoint and return error.
-
 endpoint http:Client legacyServiceResilientEP {
     circuitBreaker: {
         // failure calculation window
@@ -36,7 +34,6 @@ endpoint http:Client legacyServiceResilientEP {
     // Invocation timeout - independent of circuit
     timeoutMillis:2000
 };
-
 
 @http:ServiceConfig {
   basePath:"/resilient/time"
