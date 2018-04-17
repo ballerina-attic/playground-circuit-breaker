@@ -8,31 +8,31 @@ string previousRes;
 // errors or responses take longer than timeout.
 // OPEN circuits bypass endpoint and return error.
 endpoint http:Client legacyServiceResilientEP {
-    circuitBreaker: {
-        // failure calculation window
-        rollingWindow: {
-                           // duration of the window
-                           timeWindow:10000,
-                           // each time window is divided
-                           // into buckets
-                           bucketSize:2000
-                       },
+  circuitBreaker: {
+    // failure calculation window
+    rollingWindow: {
+      // duration of the window
+      timeWindowMillies:10000,
+      // each time window is divided
+      // into buckets
+      bucketSizeMillies:2000
+     },
 
-        // percentage of failures allowed
-        failureThreshold:0,
+    // percentage of failures allowed
+    failureThreshold:0,
 
-        // reset circuit to CLOSED state after timeout
-        resetTimeMillies:1000,
+    // reset circuit to CLOSED state after timeout
+    resetTimeMillies:1000,
 
-        // error codes that open the circuit
-        statusCodes:[400, 404, 500]
-    },
+    // error codes that open the circuit
+    statusCodes:[400, 404, 500]
+  },
 
-    // URI of the remote service
-    targets: [ { url: "http://localhost:9095"}],
+  // URI of the remote service
+  targets: [ { url: "http://localhost:9095"}],
 
-    // Invocation timeout - independent of circuit
-    timeoutMillis:2000
+  // Invocation timeout - independent of circuit
+  timeoutMillis:2000
 };
 
 @http:ServiceConfig {
@@ -58,7 +58,7 @@ service<http:Service> timeInfo bind {} {
 
           match res.getStringPayload() {
             string str => {
-              previousRes = str;
+              previousRes = untaint str;
             }
             error err => {
               io:println("Error received from"
