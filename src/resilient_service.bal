@@ -55,7 +55,6 @@ service<http:Service> timeInfo bind {} {
       // Circuit breaker not tripped, process response
       http:Response res => {
         if (res.statusCode == 200) {
-
           match res.getStringPayload() {
             string str => {
               previousRes = untaint str;
@@ -67,8 +66,8 @@ service<http:Service> timeInfo bind {} {
           }
           io:println("Remote service OK, data received");
         } else {
-          // Remote endpoint returns and error
-          io:println("Error received from remote service");
+            // Remote endpoint returns and error.
+            io:println("Error received from remote service.");
           }
           http:Response okResponse = new;
           okResponse.statusCode = 200;
@@ -86,6 +85,5 @@ service<http:Service> timeInfo bind {} {
           _ = caller -> respond(errResponse);
         }
     }
-
   }
 }
