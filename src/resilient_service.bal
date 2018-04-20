@@ -7,7 +7,6 @@ string previousRes;
 // under some conditions. Circuit flips to OPEN state when
 // errors or responses take longer than timeout.
 // OPEN circuits bypass endpoint and return error.
-
 endpoint http:Client legacyServiceResilientEP {
   circuitBreaker: {
     // failure calculation window
@@ -62,13 +61,12 @@ service<http:Service> timeInfo bind {} {
             }
             error err => {
               io:println("Error received from"
-                         + " remote service.");
+                         + " remote service");
             }
           }
-          io:println("Remote service OK. Data received: " +
-                        previousRes);
+          io:println("Remote service OK, data received");
         } else {
-          // Remote endpoint returns and error.
+            // Remote endpoint returns and error.
             io:println("Error received from remote service.");
           }
           http:Response okResponse = new;
@@ -80,7 +78,7 @@ service<http:Service> timeInfo bind {} {
         http:HttpConnectorError err => {
           http:Response errResponse = new;
           // Use the last successful response
-          io:println("Using cached value: " + previousRes);
+          io:println("Circuit open, using cached data");
 
           // Inform client service is unavailable
           errResponse.statusCode = 503;
