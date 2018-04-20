@@ -36,7 +36,6 @@ endpoint http:Client legacyServiceResilientEP {
   timeoutMillis:2000
 };
 
-
 @http:ServiceConfig {
   basePath:"/resilient/time"
 }
@@ -57,7 +56,6 @@ service<http:Service> timeInfo bind {} {
       // Circuit breaker not tripped, process response
       http:Response res => {
         if (res.statusCode == 200) {
-
           match res.getStringPayload() {
             string str => {
               previousRes = untaint str;
@@ -89,6 +87,5 @@ service<http:Service> timeInfo bind {} {
           _ = caller -> respond(errResponse);
         }
     }
-
   }
 }
