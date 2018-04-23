@@ -3,6 +3,10 @@ import ballerina/io;
 
 string previousRes;
 
+endpoint http:Listener listener {
+  port:9090
+};
+
 // Endpoint with circuit breaker can short circuit responses
 // under some conditions. Circuit flips to OPEN state when
 // errors or responses take longer than timeout. OPEN circuits
@@ -37,7 +41,7 @@ endpoint http:Client legacyServiceResilientEP {
 @http:ServiceConfig {
   basePath:"/resilient/time"
 }
-service<http:Service> timeInfo bind {} {
+service<http:Service> timeInfo bind listener {
 
   @http:ResourceConfig {
     methods:["GET"],
