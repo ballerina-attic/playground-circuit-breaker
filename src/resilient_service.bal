@@ -65,7 +65,7 @@ service<http:Service> timeInfo bind {} {
           }
           io:println("Remote service OK, data received");
         } else {
-            // Remote endpoint returns and error.
+            // Remote endpoint returns an error.
             io:println("Error received from remote service.");
           }
           http:Response okResponse = new;
