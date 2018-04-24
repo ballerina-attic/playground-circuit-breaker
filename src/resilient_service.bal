@@ -12,30 +12,30 @@ endpoint http:Listener listener {
 // errors or responses take longer than timeout. OPEN circuits
 // bypass endpoint and return error.
 endpoint http:Client legacyServiceResilientEP {
+  // URL of the remote service.
+  url: "http://localhost:9095",
   circuitBreaker: {
+
     // Failure calculation window.
     rollingWindow: {
       // Duration of the window.
-      timeWindowMillies:10000,
-      // Each time window is divided into buckets.
-      bucketSizeMillies:2000
-     },
+      timeWindowMillis: 10000,
 
+      // Each time window is divided into buckets.
+      bucketSizeMillis: 2000
+    },
     // Percentage of failures allowed.
-    failureThreshold:0,
+    failureThreshold: 0,
 
     // Reset circuit to CLOSED state after timeout.
-    resetTimeMillies:1000,
+    resetTimeMillis: 1000,
 
     // Error codes that open the circuit.
-    statusCodes:[400, 404, 500]
+    statusCodes: [400, 404, 500]
   },
 
-  // URI of the remote service.
-  targets: [ { url: "http://localhost:9095"}],
-
   // Invocation timeout - independent of circuit.
-  timeoutMillis:2000
+  timeoutMillis: 2000
 };
 
 @http:ServiceConfig {
@@ -50,43 +50,43 @@ service<http:Service> timeInfo bind listener {
   getTime (endpoint caller, http:Request req) {
 
     var response = legacyServiceResilientEP
-        -> get("/legacy/localtime", new);
+        -> get("/legacy/localtime");
 
     // Match response for successful or failed messages.
     match response {
 
       // Circuit breaker not tripped, process response.
       http:Response res => {
+        http:Response okResponse = new;
         if (res.statusCode == 200) {
-          match res.getStringPayload() {
-            string str => {
-              previousRes = untaint str;
-            }
-            error err => {
-              io:println("Error received from"
-                         + " remote service");
-            }
-          }
+          string pyloadContent = check res.getTextPayload();
+          // Verify that the request payload doesn't contain
+          // any malicious data.
+          previousRes = untaint pyloadContent;
+          okResponse.setTextPayload(pyloadContent);
           io:println("Remote service OK, data received");
         } else {
             // Remote endpoint returns an error.
             io:println("Error received from remote service.");
-          }
-          http:Response okResponse = new;
-          okResponse.statusCode = 200;
-          _ = caller -> respond(okResponse);
+            okResponse.setTextPayload("Previous Response : "
+                + previousRes);
         }
+        okResponse.statusCode = http:OK_200;
+        _ = caller -> respond(okResponse);
+      }
 
-        // Circuit breaker tripped and generates error.
-        http:HttpConnectorError err => {
-          http:Response errResponse = new;
-          // Use the last successful response.
-          io:println("Circuit open, using cached data");
+      // Circuit breaker tripped and generates error.
+      http:HttpConnectorError err => {
+        http:Response errResponse = new;
+        // Use the last successful response.
+        io:println("Circuit open, using cached data");
+        errResponse.setTextPayload( "Previous Response : "
+            + previousRes);
 
-          // Inform client service is unavailable.
-          errResponse.statusCode = 503;
-          _ = caller -> respond(errResponse);
-        }
+        // Inform client service is unavailable.
+        errResponse.statusCode = http:OK_200;
+        _ = caller -> respond(errResponse);
+      }
     }
   }
 }
