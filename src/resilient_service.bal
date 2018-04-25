@@ -59,11 +59,11 @@ service<http:Service> timeInfo bind listener {
       http:Response res => {
         http:Response okResponse = new;
         if (res.statusCode == 200) {
-          string pyloadContent = check res.getTextPayload();
+          string payloadContent = check res.getTextPayload();
           // Verify that the request payload doesn't contain
           // any malicious data.
-          previousRes = untaint pyloadContent;
-          okResponse.setTextPayload(pyloadContent);
+          previousRes = untaint payloadContent;
+          okResponse.setTextPayload(payloadContent);
           io:println("Remote service OK, data received");
         } else {
             // Remote endpoint returns an error.
