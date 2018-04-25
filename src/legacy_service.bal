@@ -25,20 +25,20 @@ service<http:Service> legacy_time bind listener {
 
         if (counter % 5 == 0) {
             io:println("Legacy Service : Behavior - Slow");
-            runtime:sleepCurrentWorker(1000);
+            runtime:sleep(1000);
             counter = counter + 1;
-            response.setStringPayload(customTimeString);
+            response.setTextPayload(customTimeString);
             _ = caller -> respond(response);
         } else if (counter % 5 == 3) {
             counter = counter + 1;
             response.statusCode = 500;
             io:println("Legacy Service : Behavior - Faulty");
-            response.setStringPayload("Internal error occurred while processing the request.");
+            response.setTextPayload("Internal error occurred while processing the request.");
             _ = caller -> respond(response);
         } else {
             io:println("Legacy Service : Behavior - Normal");
             counter = counter + 1;
-            response.setStringPayload(customTimeString);
+            response.setTextPayload(customTimeString);
             _ = caller -> respond(response);
         }
     }
