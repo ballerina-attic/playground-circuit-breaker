@@ -76,7 +76,7 @@ service<http:Service> timeInfo bind listener {
       }
 
       // Circuit breaker tripped and generates error.
-      http:HttpConnectorError err => {
+      error err => {
         http:Response errResponse = new;
         // Use the last successful response.
         io:println("Circuit open, using cached data");
