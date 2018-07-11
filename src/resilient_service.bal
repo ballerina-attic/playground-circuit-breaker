@@ -22,7 +22,10 @@ endpoint http:Client legacyServiceResilientEP {
       timeWindowMillis: 10000,
 
       // Each time window is divided into buckets.
-      bucketSizeMillis: 2000
+      bucketSizeMillis: 2000,
+
+      // Minimum number of requests in a `RollingWindow` that will trip the circuit.
+      requestVolumeThreshold: 0
     },
     // Percentage of failures allowed.
     failureThreshold: 0,
@@ -63,7 +66,7 @@ service<http:Service> timeInfo bind listener {
           // Verify that the request payload doesn't contain
           // any malicious data.
           previousRes = untaint payloadContent;
-          okResponse.setTextPayload(payloadContent);
+          okResponse.setTextPayload(untaint payloadContent);
           io:println("Remote service OK, data received");
         } else {
             // Remote endpoint returns an error.
