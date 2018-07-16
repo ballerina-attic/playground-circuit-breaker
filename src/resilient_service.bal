@@ -9,8 +9,8 @@ endpoint http:Listener listener {
 
 // Endpoint with circuit breaker can short circuit responses
 // under some conditions. Circuit flips to OPEN state when
-// errors or responses take longer than timeout. OPEN circuits
-// bypass endpoint and return error.
+// errors or responses take longer than timeout.
+// OPEN circuits bypass endpoint and return error.
 endpoint http:Client legacyServiceResilientEP {
   // URL of the remote service.
   url: "http://localhost:9095",
@@ -24,7 +24,8 @@ endpoint http:Client legacyServiceResilientEP {
       // Each time window is divided into buckets.
       bucketSizeMillis: 2000,
 
-      // Minimum number of requests in a `RollingWindow` that will trip the circuit.
+      // Minimum number of requests in a `RollingWindow`
+      // that will trip the circuit.
       requestVolumeThreshold: 0
     },
     // Percentage of failures allowed.
@@ -70,7 +71,8 @@ service<http:Service> timeInfo bind listener {
           io:println("Remote service OK, data received");
         } else {
             // Remote endpoint returns an error.
-            io:println("Error received from remote service.");
+            io:println("Error received from "
+                + "remote service.");
             okResponse.setTextPayload("Previous Response : "
                 + previousRes);
         }
