@@ -27,7 +27,7 @@ endpoint http:Client legacyServiceResilientEP {
     },
 
     // Percentage of failures allowed
-    failureThreshold: 0,
+    failureThreshold: 0.0,
 
     // Reset circuit to CLOSED state after timeout
     resetTimeMillis: 1000,
