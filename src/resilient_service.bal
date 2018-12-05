@@ -1,94 +1,99 @@
 import ballerina/http;
-import ballerina/io;
+import ballerina/log;
 
-string previousRes;
+string previousRes = "";
 
-endpoint http:Listener listener {
-  port:9090
-};
+listener http:Listener ep = new(9090);
 
 // Endpoint with circuit breaker can short circuit responses under
 // some conditions. Circuit flips to OPEN state when errors or
 // responses take longer than timeout. OPEN circuits bypass
 // endpoint and return error.
-endpoint http:Client legacyServiceResilientEP {
-  url: "http://localhost:9095",
-  circuitBreaker: {
-    // Failure calculation window
-    rollingWindow: {
-      // Duration of the window
-      timeWindowMillis: 10000,
+http:Client legacyServiceResilientEP = new("http://localhost:9095" ,
+  config = {
+      circuitBreaker: {
+        // Failure calculation window.
+        rollingWindow: {
+          // Duration of the window
+          timeWindowMillis: 10000,
 
-      // Each time window is divided into buckets
-      bucketSizeMillis: 2000,
+          // Each time window is divided into buckets.
+          bucketSizeMillis: 2000,
 
-      // Min # of requests in a `RollingWindow` to trip circuit
-      requestVolumeThreshold: 0
+          // Min # of requests in a `RollingWindow` to trip circuit.
+          requestVolumeThreshold: 0
+        },
+
+        // Percentage of failures allowed.
+        failureThreshold: 0.0,
+
+        // Reset circuit to CLOSED state after timeout.
+        resetTimeMillis: 1000,
+
+        // Error codes that open the circuit.
+        statusCodes: [400, 404, 500]
     },
 
-    // Percentage of failures allowed
-    failureThreshold: 0.0,
-
-    // Reset circuit to CLOSED state after timeout
-    resetTimeMillis: 1000,
-
-    // Error codes that open the circuit
-    statusCodes: [400, 404, 500]
-  },
-
-  // Invocation timeout - independent of circuit
+  // Invocation timeout - independent of circuit.
   timeoutMillis: 2000
-};
+});
 
 @http:ServiceConfig {
   basePath:"/resilient/time"
 }
-service<http:Service> timeInfo bind listener {
+service timeInfo on ep {
 
   @http:ResourceConfig {
     methods:["GET"],
     path:"/"
   }
-  getTime (endpoint caller, http:Request req) {
+  resource function getTime(http:Caller caller, http:Request req) {
 
-    var response = legacyServiceResilientEP -> 
-        get("/legacy/localtime");
+    var response = legacyServiceResilientEP->
+                    get("/legacy/localtime");
 
-    match response {
+    if (response is http:Response) {
 
-      // Circuit breaker not tripped
-      http:Response res => {
+      // Circuit breaker not tripped.
         http:Response okResponse = new;
-        if (res.statusCode == 200) {
+        if (response.statusCode == 200) {
 
-          string payloadContent = check res.getTextPayload();
-          previousRes = untaint payloadContent;
-          okResponse.setTextPayload(untaint payloadContent);
-          io:println("Remote service OK, data received");
+          var payloadContent = response.getTextPayload();
+          if (payloadContent is string) {
 
+            previousRes = untaint payloadContent;
+            okResponse.setPayload(untaint payloadContent);
+            log:printInfo("Remote service OK, data received");
+
+          } else if (payloadContent is error) {
+
+            // Remote endpoint returns an error.
+            log:printError("Error in parsing response payload.");
+            okResponse.setPayload("Previous Response : "
+                                  + previousRes);
+          }
         } else {
 
-            // Remote endpoint returns an error
-            io:println("Error received from "+"remote service.");
-            okResponse.setTextPayload("Previous Response : "
-                + previousRes);
+            // Remote endpoint returns an error.
+            log:printError("Error received from remote service.");
+            okResponse.setPayload("Previous Response : "
+                                  + previousRes);
 
         }
         okResponse.statusCode = http:OK_200;
         _ = caller -> respond(okResponse);
-      }
 
-      // Circuit breaker tripped and generates error
-      error err => {
+    } else if (response is error) {
+
+        // Circuit breaker tripped and generates error
         http:Response errResponse = new;
-        io:println("Circuit open, using cached data");
-        errResponse.setTextPayload( "Previous Response : "
-            + previousRes);
+        log:printInfo("Circuit open, using cached data");
+        errResponse.setPayload( "Previous Response : "
+                                + previousRes);
 
-        // Inform client service is unavailable
+        // Inform client service unavailability.
         errResponse.statusCode = http:OK_200;
         _ = caller -> respond(errResponse);
-      }
     }
   }
 }
