@@ -26,18 +26,27 @@ service legacy_time on ep {
             runtime:sleep(1000);
             counter = counter + 1;
             response.setPayload(customTimeString);
-            _ = caller -> respond(response);
+            var result = caller -> respond(response);
+            handleError(result);
         } else if (counter % 5 == 3) {
             counter = counter + 1;
             response.statusCode = 500;
             log:printInfo("Legacy Service : Behavior - Faulty");
             response.setPayload("Internal error occurred while processing the request.");
-            _ = caller -> respond(response);
+            var result = caller -> respond(response);
+            handleError(result);
         } else {
             log:printInfo("Legacy Service : Behavior - Normal");
             counter = counter + 1;
             response.setPayload(customTimeString);
-            _ = caller -> respond(response);
+            var result = caller -> respond(response);
+            handleError(result);
         }
+    }
+}
+
+function handleError(error? result) {
+    if (result is error) {
+        log:printError(result.reason(), err = result);
     }
 }

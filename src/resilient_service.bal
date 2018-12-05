@@ -81,7 +81,8 @@ service timeInfo on ep {
 
         }
         okResponse.statusCode = http:OK_200;
-        _ = caller -> respond(okResponse);
+        var result = caller->respond(okResponse);
+        handleError(result);
 
     } else if (response is error) {
 
@@ -93,7 +94,14 @@ service timeInfo on ep {
 
         // Inform client service unavailability.
         errResponse.statusCode = http:OK_200;
-        _ = caller -> respond(errResponse);
+        var result = caller->respond(errResponse);
+        handleError(result);
     }
   }
+}
+
+function handleError(error? result) {
+    if (result is error) {
+        log:printError(result.reason(), err = result);
+    }
 }
