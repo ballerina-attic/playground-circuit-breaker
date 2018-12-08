@@ -47,7 +47,8 @@ service timeInfo on ep {
     methods:["GET"],
     path:"/"
   }
-  resource function getTime(http:Caller caller, http:Request req) {
+  resource function getTime(http:Caller caller, http:Request req)
+                                                    returns error? {
 
     var response = legacyServiceResilientEP->
                     get("/legacy/localtime");
@@ -58,20 +59,11 @@ service timeInfo on ep {
         http:Response okResponse = new;
         if (response.statusCode == 200) {
 
-          var payloadContent = response.getTextPayload();
-          if (payloadContent is string) {
+          string payloadContent = check response.getTextPayload();
+          previousRes = untaint payloadContent;
+          okResponse.setPayload(untaint payloadContent);
+          log:printInfo("Remote service OK, data received");
 
-            previousRes = untaint payloadContent;
-            okResponse.setPayload(untaint payloadContent);
-            log:printInfo("Remote service OK, data received");
-
-          } else if (payloadContent is error) {
-
-            // Remote endpoint returns an error.
-            log:printError("Error in parsing response payload.");
-            okResponse.setPayload("Previous Response : "
-                                  + previousRes);
-          }
         } else {
 
             // Remote endpoint returns an error.
@@ -81,8 +73,7 @@ service timeInfo on ep {
 
         }
         okResponse.statusCode = http:OK_200;
-        var result = caller->respond(okResponse);
-        handleError(result);
+        _ = caller->respond(okResponse);
 
     } else if (response is error) {
 
@@ -94,14 +85,8 @@ service timeInfo on ep {
 
         // Inform client service unavailability.
         errResponse.statusCode = http:OK_200;
-        var result = caller->respond(errResponse);
-        handleError(result);
+        _ = caller->respond(errResponse);
     }
+    return;
   }
-}
-
-function handleError(error? result) {
-    if (result is error) {
-        log:printError(result.reason(), err = result);
-    }
 }
