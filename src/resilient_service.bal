@@ -9,7 +9,7 @@ listener http:Listener ep = new(9090);
 // some conditions. Circuit flips to OPEN state when errors or
 // responses take longer than timeout. OPEN circuits bypass
 // endpoint and return error.
-http:Client legacyServiceResilientEP = new("http://localhost:9095" ,
+http:Client legacyServiceResilientEP = new("http://localhost:9095",
   config = {
       circuitBreaker: {
         // Failure calculation window.
@@ -20,7 +20,7 @@ http:Client legacyServiceResilientEP = new("http://localhost:9095" ,
           // Each time window is divided into buckets.
           bucketSizeMillis: 2000,
 
-          // Min # of requests in a `RollingWindow` to trip circuit.
+          // Min # of requests in a `RollingWindow` to trip.
           requestVolumeThreshold: 0
         },
 
@@ -48,7 +48,7 @@ service timeInfo on ep {
     path:"/"
   }
   resource function getTime(http:Caller caller, http:Request req)
-                                                    returns error? {
+                                                 returns error? {
 
     var response = legacyServiceResilientEP->
                     get("/legacy/localtime");
