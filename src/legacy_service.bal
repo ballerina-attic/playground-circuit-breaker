@@ -19,7 +19,7 @@ service legacy_time on ep {
         http:Response response = new;
 
         time:Time currentTime = time:currentTime();
-        string customTimeString = currentTime.format("HH:mm:ss");
+        string customTimeString = time:format(currentTime, "HH:mm:ss");
 
         if (counter % 5 == 0) {
             log:printInfo("Legacy Service : Behavior - Slow");
