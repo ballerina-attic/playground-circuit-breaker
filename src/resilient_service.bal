@@ -73,9 +73,9 @@ service timeInfo on ep {
 
         }
         okResponse.statusCode = http:OK_200;
-        _ = caller->respond(okResponse);
+        _ = check caller->respond(okResponse);
 
-    } else if (response is error) {
+    } else {
 
         // Circuit breaker tripped and generates error
         http:Response errResponse = new;
@@ -85,7 +85,7 @@ service timeInfo on ep {
 
         // Inform client service unavailability.
         errResponse.statusCode = http:OK_200;
-        _ = caller->respond(errResponse);
+        _ = check caller->respond(errResponse);
     }
     return;
   }
