@@ -6,20 +6,20 @@ import ballerina/time;
 // ***** This service acts as a backend and is not exposed via playground samples ******
 
 
-public int counter = 1;
+int counter = 1;
 
-listener http:Listener ep = new(9095);
+listener http:Listener backendEp = new(9095);
 
 @http:ServiceConfig {basePath:"/legacy"}
-service legacy_time on ep {
+service legacy_time on backendEp {
     @http:ResourceConfig{
         path: "/localtime",  methods: ["GET"]
     }
-    resource function getTime (http:Caller caller, http:Request request) {
+    resource function getTime (http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
 
         time:Time currentTime = time:currentTime();
-        string customTimeString = time:format(currentTime, "HH:mm:ss");
+        string customTimeString = check time:format(currentTime, "HH:mm:ss");
 
         if (counter % 5 == 0) {
             log:printInfo("Legacy Service : Behavior - Slow");
